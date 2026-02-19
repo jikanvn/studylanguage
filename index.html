@@ -375,7 +375,13 @@
 						cImg.src = target.img;
 						if (score % 50 === 0 && fallSpeed > 1.5) { fallSpeed -= 0.3; spawnRate = Math.max(800, spawnRate - 150); }
 					} else {
-						mistakes++; playSound('Try again');
+						mistakes++; 
+						// Tự động chọn câu "Thử lại" theo ngôn ngữ đang học
+						let retryText = 'Try again'; // Mặc định tiếng Anh
+						if (lang === 'ja') retryText = '残念、もう一度'; // Tiếng Nhật: Zannen, mou ichido (Tiếc quá, lại lần nữa nhé)
+						else if (lang === 'ko') retryText = '다시 시도하세요'; // Tiếng Hàn: Dasi sido-haseyo (Hãy thử lại lần nữa)
+
+						playSound(retryText);
 						catcher.classList.add('shaking'); setTimeout(() => catcher.classList.remove('shaking'), 400);
 						if (mistakes >= 10) { gameActive = false; alert("Kết thúc! Điểm: " + score); backToMap(); }
 					}
