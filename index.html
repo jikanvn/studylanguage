@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Học Ngoại Ngữ Đa Năng</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        /**
+         * 1. HỆ THỐNG QUẢN LÝ NGÔN NGỮ
+         * Tự động nhận diện ngôn ngữ từ URL (Ví dụ: ?lang=ja) và nạp file dữ liệu tương ứng.
+         */
+        const urlParams = new URLSearchParams(window.location.search);
+        const lang = urlParams.get('lang') || 'en'; // Mặc định là tiếng Anh (en)
+        
+        // Nạp file JavaScript dữ liệu (data.js, data_ja.js hoặc data_ko.js)
+        const script = document.createElement('script');
+        script.src = lang === 'ja' ? 'data_ja.js' : (lang === 'ko' ? 'data_ko.js' : 'data.js');
+        document.head.appendChild(script);
+
+        // Cấu hình mã vùng và biểu tượng cho từng ngôn ngữ
+        const langConfig = {
+            'en': { code: 'en-US', label: 'English', flag: '🇺🇸' },
+            'ja': { code: 'ja-JP', label: 'Japanese', flag: '🇯🇵' },
+            'ko': { code: 'ko-KR', label: 'Korean', flag: '🇰🇷' }
+        };
+        const currentLang = langConfig[lang] || langConfig['en'];
+    </script>
+
+    <style>
+        /* --- 2. GIAO DIỆN (CSS) --- */
+        :root { 
+            --primary: #FFD700;  /* Màu vàng cho ải hiện tại */
+            --success: #4CAF50;  /* Màu xanh cho ải đã hoàn thành */
+            --locked: #bdc3c7;   /* Màu xám cho ải bị khóa */
+            --bg: #f0f9ff; 
+            --text: #2c3e50;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            margin: 0; 
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            touch-action: manipulation; /* Ngăn chặn double-tap zoom trên điện thoại */
+        }
+
+        #game-container { 
+			width: 95%;
+			max-width: 500px; 
+			background: white; 
+			padding: 15px; 
+			border-radius: 30px; 
+			box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+			box-sizing: border-box;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Icon cờ chuyển ngôn ngữ */
+        .lang-selector {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-bottom: 5px;
+            padding-right: 10px;
+        }
+        .lang-item {
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .lang-item:hover { transform: scale(1.2); }
+        .lang-item span { font-size: 0.6rem; font-weight: bold; margin-top: -5px; }
+
+        /* Thanh tiến độ */
+        .progress-wrapper { 
+            width: 100%; 
+            background: #eee; 
+            border-radius: 20px; 
+            height: 15px; 
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+        .progress-bar { 
+            height: 100%; 
+            width: 0%; 
+            background: linear-gradient(90deg, #4CAF50, #8BC34A); 
+            transition: width 0.5s; 
+        }
+
+        /* Bản đồ (Map) - Chống tràn khung */
+		.map { 
+			display: grid; 
+			grid-template-columns: repeat(3, 1fr); 
+			gap: 12px; 
+			padding: 15px 5px; 
+			width: 100%;
+			box-sizing: border-box;
+		}
+		@media (min-width: 400px) {
+			.map { grid-template-columns: repeat(4, 1fr); }
+		}
+
+		.level-node { 
+			width: 100%; 
+			aspect-ratio: 1/1; 
+			display: flex; 
+			flex-direction: column; 
+			justify-content: center; 
+			align-items: center;
+			border-radius: 18px; 
+			cursor: pointer; 
+			font-weight: bold; 
+			transition: all 0.2s ease; 
+			background: #fff;
+			border: 2px solid transparent;
+			box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+			box-sizing: border-box;
+			overflow: hidden;
+			text-align: center;
+			padding: 5px;
+		}
+        .level-node.active { background: var(--primary); transform: scale(1.05); }
+        .level-node.completed { background: #e8f5e9; color: var(--success); border: 2px solid var(--success); }
+        .level-node.locked { background: #f5f5f5; color: #999; opacity: 0.6; cursor: not-allowed; }
+
+        .level-node div:first-child { font-size: 1.2rem; margin-bottom: 2px; }
+		.level-node div:last-child { 
+			font-size: 0.65rem; 
+			line-height: 1.1;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+
+        /* Giao diện Học tập (Quiz) */
+        .vocab-img-container { 
+            width: 100%; 
+            max-width: 280px;
+            aspect-ratio: 1/1;
+            border-radius: 25px;
+            border: 6px solid #fff;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .vocab-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .speaker-icon { 
+            position: absolute; bottom: 10px; right: 10px; 
+            background: rgba(255,255,255,0.9); 
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 20px;
+        }
+
+        .options { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+            margin-top: 20px; 
+        }
+        
+        button.option { 
+            padding: 15px 5px; 
+            font-size: 1rem; 
+            font-weight: bold;
+            border-radius: 15px; 
+            border: 2px solid #eee;
+            background: #fff;
+            color: var(--text);
+            cursor: pointer;
+            box-shadow: 0 3px 0 #eee;
+        }
+        button.option.correct-choice { 
+            background: var(--success) !important; 
+            color: white !important; 
+            box-shadow: 0 3px 0 #2e7d32;
+            border: none;
+        }
+
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); display: flex; justify-content: center; 
+            align-items: center; z-index: 1000;
+        }
+        .congrats-card { background: white; padding: 30px; border-radius: 30px; text-align: center; }
+
+        .next-btn { 
+            padding: 15px 20px; font-size: 1.1rem; background: #FF9800; 
+            color: white; border: none; border-radius: 50px; 
+            cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 0 #e68a00;
+        }
+    </style>
+</head>
+<body>
+
+<div id="congrats-modal" class="modal-overlay hidden">
+    <div class="congrats-card">
+        <h1 id="congrats-title">👑 VỊ VUA NGÔN NGỮ! 👑</h1>
+        <p id="congrats-text">Bé thật tuyệt vời!</p>
+        <img src="https://img.freepik.com/free-vector/golden-cup-victory-flat-style_78370-166.jpg" alt="Cúp Vàng" style="width:120px;">
+        <br>
+        <button onclick="backToMapAndHide()" class="next-btn" style="margin-top:20px;">Quay lại bản đồ</button>
+    </div>
+</div>
+
+<div id="game-container">
+    <div class="lang-selector">
+        <div class="lang-item" onclick="switchLanguage('en')">🇺🇸<span>English</span></div>
+        <div class="lang-item" onclick="switchLanguage('ja')">🇯🇵<span>Japanese</span></div>
+        <div class="lang-item" onclick="switchLanguage('ko')">🇰🇷<span>Korean</span></div>
+    </div>
+
+    <div class="progress-wrapper">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div id="progress-text" style="font-weight:bold; font-size: 0.8rem; text-align: center;">Tiến trình: 0%</div>
+	
+    <div id="screen-map">
+		<h2 id="admin-touch-zone">🚩 Bản Đồ Phiêu Lưu</h2>
+        <button onclick="confirmReset()" style="margin-bottom: 10px; padding: 8px 15px; border-radius: 15px; cursor: pointer; background: #ff5252; color: white; border: none; font-size: 0.8rem; font-weight: bold;">
+            🔄 Chơi lại từ đầu
+        </button>
+        <div class="map" id="map-levels"></div>
+    </div>
+
+    <div id="screen-quiz" class="hidden">
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px;">
+            <button onclick="backToMap()" style="cursor:pointer; background:#f0f0f0; border:none; width: 40px; height: 40px; border-radius: 50%; font-size:18px;">🏠</button>
+            <h3 id="level-title" style="margin:0; font-size: 1rem;">Ải: ...</h3>
+            <div id="quest-count" style="font-weight:bold; color:#3498db; font-size: 0.8rem;">Câu 1/10</div>
+        </div>
+        
+        <div class="vocab-img-container" id="image-wrapper">
+            <img id="display-image" src="" alt="Learning">
+            <div class="speaker-icon">🔊</div>
+        </div>
+        <div class="options" id="options-container"></div>
+        
+		<div style="display: flex; gap: 10px; margin-top: 20px;">
+			<button id="prev-step-btn" class="next-btn hidden" style="width: 40%; background: #95a5a6; box-shadow: 0 4px 0 #7f8c8d;" onclick="goPrevQuestion()">⬅️ QUAY LẠI</button>
+			<button id="next-step-btn" class="next-btn hidden" style="flex-grow: 1;" onclick="goNextQuestion()">TIẾP THEO ➡️</button>
+		</div>
+    </div>
+</div>
+
+<script>
+    /* --- 3. QUẢN LÝ DỮ LIỆU & BIẾN TOÀN CỤC --- */
+    const storageKey = `progress_${lang}`; 
+	let userProgress = parseInt(localStorage.getItem(storageKey)) || 1; 
+	let currentLevel = null;      
+	let currentQuestIndex = 0;   
+	let solvedQuestions = [];    
+    let keysPressed = {};        
+    let tapCount = 0;            
+    let tapTimer;
+
+    /**
+     * Chuyển đổi ngôn ngữ và reload trang
+     */
+    function switchLanguage(newLang) {
+        if (newLang === lang) return;
+        const confirmMsg = newLang === 'ja' ? "Bé muốn chuyển sang học tiếng Nhật không?" : 
+                          (newLang === 'ko' ? "Bé muốn chuyển sang học tiếng Hàn không?" : "Bé muốn chuyển về tiếng Anh không?");
+        if (confirm(confirmMsg)) {
+            window.location.href = `?lang=${newLang}`;
+        }
+    }
+
+    script.onload = () => { initGame(); };
+
+    let gameData = [];
+
+    /**
+     * Khởi tạo mảng dữ liệu 30 ải
+     */
+    function initGame() {
+        gameData = myFullThemes.map((theme, index) => ({
+            id: index + 1,
+            name: theme.name,
+            questions: theme.words
+        }));
+        renderMap();
+        updateProgressBar();
+    }
+
+    /* --- 4. HỆ THỐNG ÂM THANH (TTS) --- */
+	function playSound(text) {
+		window.speechSynthesis.cancel();
+		const speech = new SpeechSynthesisUtterance(text);
+		speech.lang = currentLang.code;
+		speech.rate = (lang === 'en') ? 0.9 : 0.8; 
+		speech.pitch = 1.1;
+
+		const voices = window.speechSynthesis.getVoices();
+		let selectedVoice = voices.find(v => 
+			v.lang === currentLang.code && 
+			(v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium'))
+		);
+		if (!selectedVoice) selectedVoice = voices.find(v => v.lang === currentLang.code);
+		if (selectedVoice) speech.voice = selectedVoice;
+		window.speechSynthesis.speak(speech);
+	}
+
+	window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+
+    /* --- 5. LOGIC HIỂN THỊ GIAO DIỆN --- */
+
+    /**
+     * Vẽ bản đồ các ải lên màn hình chính
+     */
+	function renderMap() {
+		const mapDiv = document.getElementById('map-levels');
+		mapDiv.innerHTML = '';
+		gameData.forEach(level => {
+			const node = document.createElement('div');
+			node.className = 'level-node';
+			if (level.id <= userProgress) {
+				if (level.id < userProgress) {
+					node.classList.add('completed');
+					node.innerHTML = `<div>✅</div><div>${level.name}</div>`;
+				} else {
+					node.classList.add('active');
+					node.innerHTML = `<div>${level.id}</div><div>${level.name}</div>`;
+				}
+				node.onclick = () => startLevel(level);
+			} else {
+				node.classList.add('locked');
+				node.innerHTML = `<div>🔒</div><div>${level.name}</div>`;
+				node.onclick = null;
+			}
+			mapDiv.appendChild(node);
+		});
+	}
+
+	function startLevel(level) {
+		currentLevel = level;
+		currentQuestIndex = 0;
+		solvedQuestions = [];
+		document.getElementById('screen-map').classList.add('hidden');
+		document.getElementById('screen-quiz').classList.remove('hidden');
+		document.getElementById('level-title').innerText = `${currentLang.flag} ${level.name}`;
+		showQuestion();
+	}
+	
+    /**
+     * Hiển thị nội dung câu hỏi và các lựa chọn
+     */
+	function showQuestion() {
+		const quest = currentLevel.questions[currentQuestIndex];
+		document.getElementById('quest-count').innerText = `Câu ${currentQuestIndex + 1}/${currentLevel.questions.length}`;
+		document.getElementById('display-image').src = quest.img;
+		
+		const nextBtn = document.getElementById('next-step-btn');
+		const prevBtn = document.getElementById('prev-step-btn');
+
+		if (currentQuestIndex > 0) prevBtn.classList.remove('hidden');
+		else prevBtn.classList.add('hidden');
+
+		if (solvedQuestions.includes(currentQuestIndex)) nextBtn.classList.remove('hidden');
+		else nextBtn.classList.add('hidden');
+
+		document.getElementById('image-wrapper').onclick = () => playSound(quest.w);
+
+		const optionsDiv = document.getElementById('options-container');
+		optionsDiv.innerHTML = '';
+		quest.opts.forEach(opt => {
+			const btn = document.createElement('button');
+			btn.className = 'option';
+			btn.innerText = opt;
+			if (solvedQuestions.includes(currentQuestIndex)) {
+                if (opt === quest.w) btn.classList.add('correct-choice');
+                btn.style.pointerEvents = 'none';
+            }
+			btn.onclick = () => checkAnswer(btn, opt, quest.w);
+			optionsDiv.appendChild(btn);
+		});
+	}
+	
+	function checkAnswer(btn, selected, correct) {
+		if (selected === correct) {
+			if (!solvedQuestions.includes(currentQuestIndex)) solvedQuestions.push(currentQuestIndex);
+			confetti({ particleCount: 100, spread: 50, origin: { y: 0.7 } });
+			playSound(correct); 
+			btn.classList.add('correct-choice');
+			document.querySelectorAll('.option').forEach(b => b.style.pointerEvents = 'none');
+			document.getElementById('next-step-btn').classList.remove('hidden');
+		} else {
+			playSound(lang === 'ja' ? 'ちがいます' : (lang === 'ko' ? '아니요' : 'Try again'));
+			btn.style.backgroundColor = '#ffcdd2';
+		}
+	}
+	
+	function goNextQuestion() {
+		if (currentQuestIndex < currentLevel.questions.length - 1) {
+			currentQuestIndex++;
+			showQuestion();
+		} else {
+			if (currentLevel.id === userProgress) {
+				userProgress++;
+				localStorage.setItem(storageKey, userProgress); 
+				updateProgressBar();
+				if (userProgress > gameData.length) {
+					document.getElementById('congrats-modal').classList.remove('hidden');
+				} else { backToMap(); }
+			} else { backToMap(); }
+		}
+	}
+
+    function goPrevQuestion() {
+		if (currentQuestIndex > 0) {
+			currentQuestIndex--;
+			showQuestion();
+		}
+	}
+
+	function backToMap() { 
+		document.getElementById('screen-map').classList.remove('hidden'); 
+		document.getElementById('screen-quiz').classList.add('hidden'); 
+		renderMap(); 
+		updateProgressBar();
+	}
+
+    /**
+     * Tính toán % hoàn thành dựa trên ngôn ngữ hiện tại
+     */
+	function updateProgressBar() {
+		let pct = userProgress > gameData.length ? 100 : Math.round(((userProgress - 1) / gameData.length) * 100);
+		document.getElementById('progress-bar').style.width = pct + "%";
+		document.getElementById('progress-text').innerText = `${currentLang.label} Progress: ${pct}%`;
+	}
+
+    function confirmReset() {
+        if (confirm("Xóa tiến trình học ngôn ngữ này?")) {
+            localStorage.removeItem(storageKey);
+            location.reload();
+        }
+    }
+
+    function backToMapAndHide() {
+        document.getElementById('congrats-modal').classList.add('hidden');
+        backToMap();
+    }
+
+	/* --- 6. TÍNH NĂNG ADMIN --- */
+    window.addEventListener('keydown', (e) => {
+        keysPressed[e.key.toLowerCase()] = true;
+        if (keysPressed['a'] && keysPressed['k']) { userProgress = 31; renderMap(); updateProgressBar(); }
+    });
+
+    document.getElementById('admin-touch-zone').addEventListener('click', function () {
+        tapCount++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 2000);
+        if (tapCount === 5) { 
+            userProgress = 31; 
+            renderMap(); 
+            updateProgressBar(); 
+            alert("🔑 Admin Mobile: Đã mở khóa tất cả!");
+        }
+    });
+</script>
+</body>
+</html>
