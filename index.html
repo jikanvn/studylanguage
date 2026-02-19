@@ -74,11 +74,12 @@
 			.map { grid-template-columns: repeat(4, 1fr); gap: 12px; } 
 		}
 		
-        .level-node { 
+		.level-node { 
 			width: 100%; 
 			aspect-ratio: 1/1; 
 			display: flex; 
 			flex-direction: column; 
+			/* Căn giữa theo cả hai chiều */
 			justify-content: center; 
 			align-items: center;
 			border-radius: 15px; 
@@ -86,31 +87,40 @@
 			background: #fff; 
 			box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 			box-sizing: border-box;
-			padding: 4px; /* Giảm padding để tăng không gian */
+			padding: 6px; 
 			overflow: hidden;
+			text-align: center; /* Đảm bảo chữ luôn ở giữa */
 		}
         .level-node.active { background: var(--primary); transform: scale(1.05); }
         .level-node.completed { background: #e8f5e9; color: var(--success); border: 2px solid var(--success); gap: 2px; }
         .level-node.locked { background: #f5f5f5; color: #999; opacity: 0.6; cursor: not-allowed; }
         
         /* Chữ số và Icon ✅ */
-		.level-node div:first-child { 
-			font-size: 1rem; 
-			margin-bottom: 2px; 
+		/* Căn giữa biểu tượng khóa hoặc số ải */
+		.level-node div:first-child {
+			width: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
 		}
 		.level-node.completed div:first-child { font-size: 1rem; }
 		/* Tên ải: Cực kỳ quan trọng để không bị tràn chữ Nhật/Hàn */
+		/* Tên ải cho ô CHƯA vượt qua (Locked) và ô HIỆN TẠI (Active) */
 		.level-node div:last-child { 
-			font-size: 0.5rem; /* Thu nhỏ chữ xuống mức tối đa */
-			line-height: 1;
+			font-size: 0.65rem; /* Tăng cỡ chữ to hơn một chút */
+			line-height: 1.2;
 			width: 100%;
-			word-break: break-all; /* Cho phép ngắt chữ nếu quá dài */
-			display: -webkit-box;
-			-webkit-line-clamp: 2; /* Chỉ hiện tối đa 2 dòng */
-			-webkit-box-orient: vertical;
-			overflow: hidden;
+			margin-top: 2px;
+			display: block; /* Trả về block để text-align: center có tác dụng */
 		}
-		.level-node.completed div:last-child { font-size: 0.55rem; }
+		/* Giữ nguyên quy tắc thu nhỏ riêng cho ô ĐÃ vượt qua (Completed) để nhường chỗ cho nút Play */
+		.level-node.completed div:last-child { 
+			font-size: 0.5rem; 
+			line-height: 1;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+		}
 
 		/* Nút Play 🎮 - Tối ưu cho màn hình đứng */
 		.game-icon-btn { 
