@@ -223,9 +223,10 @@
     }
 
     function updateProgressBar() {
-		let pct = userProgress > gameData.length ? 100 : Math.round(((userProgress - 1) / gameData.length) * 100);
-		document.getElementById('progress-bar').style.width = pct + "%";
-		document.getElementById('progress-text').innerText = `${currentLang.label}: ${pct}%`;
+    // Nếu userProgress > số lượng ải (tức là đã xong ải 30) thì set 100% luôn
+    let pct = userProgress > gameData.length ? 100 : Math.round(((userProgress - 1) / gameData.length) * 100);
+    document.getElementById('progress-bar').style.width = pct + "%";
+    document.getElementById('progress-text').innerText = `${currentLang.label}: ${pct}%`;
 	}
 
 	function playSound(text) {
@@ -403,6 +404,80 @@
 	}
     // Đảm bảo dữ liệu được vẽ khi trang load xong hoàn toàn
     window.onload = () => { if(gameData.length) { renderMap(); updateProgressBar(); } };
+	
+	/* --- 6. TÍNH NĂNG ADMIN (PHÍM TẮT & MOBILE TAP) --- */
+	let keysPressed = {}; // Lưu trạng thái phím đang nhấn
+	let tapCount = 0;
+	let tapTimer;
+	let previousProgress = null; // Khởi tạo là null để biết chưa có lệnh mở khóa nào được thực hiện
+
+	// Phím tắt trên Máy tính: A+K để mở khóa, L+K để quay lại ải 1
+	/* --- 6. TÍNH NĂNG ADMIN CẢI TIẾN --- */
+	window.addEventListener('keydown', (e) => {
+		const key = e.key.toLowerCase();
+		keysPressed[key] = true;
+		
+		// 1. Nhấn A + K: MỞ KHÓA TẤT CẢ (Lưu lại trạng thái cũ)
+		if (keysPressed['a'] && keysPressed['k']) { 
+			// Chỉ lưu nếu hiện tại chưa phải là trạng thái "đã mở khóa hết"
+			if (userProgress <= gameData.length) {
+				previousProgress = userProgress; 
+			}
+			
+			userProgress = gameData.length + 1; 
+			localStorage.setItem(storageKey, userProgress);
+			keysPressed = {}; 
+			renderMap(); 
+			updateProgressBar(); 
+			alert("🔓 Admin: Đã mở khóa tất cả! (Nhấn L+K để hoàn tác)");
+		}
+		
+		// 2. Nhấn L + K: HOÀN TÁC hoặc LÙI ẢI
+		if (keysPressed['l'] && keysPressed['k']) { 
+			// TRƯỜNG HỢP 1: Nếu có tiến trình cũ để hoàn tác (sau khi bấm A+K)
+			if (previousProgress !== null) {
+				userProgress = previousProgress; 
+				previousProgress = null; // Reset về null sau khi đã hoàn tác xong
+				localStorage.setItem(storageKey, userProgress);
+				keysPressed = {}; 
+				renderMap(); 
+				updateProgressBar(); 
+				alert("⏪ Admin: Đã khôi phục lại tiến trình thực tế (Ải " + userProgress + ")");
+			} 
+			// TRƯỜNG HỢP 2: Nếu không có gì để hoàn tác, thì lùi 1 ải như bình thường
+			else if (userProgress > 1) {
+				userProgress--;
+				localStorage.setItem(storageKey, userProgress);
+				keysPressed = {};
+				renderMap();
+				updateProgressBar();
+			}
+		}
+	});
+
+	window.addEventListener('keyup', (e) => {
+		delete keysPressed[e.key.toLowerCase()];
+	});
+
+	// Chạm 5 lần trên Điện thoại vào chữ "Bản Đồ Phiêu Lưu"
+	const adminZone = document.getElementById('admin-touch-zone');
+	if (adminZone) {
+		adminZone.addEventListener('click', function () {
+			tapCount++;
+			clearTimeout(tapTimer);
+			tapTimer = setTimeout(() => { tapCount = 0; }, 2000); // Reset nếu không bấm nhanh
+			
+			if (tapCount === 5) { 
+				previousProgress = userProgress; // Thêm dòng này vào hàm tap 5 lần
+				userProgress = 31; 
+				localStorage.setItem(storageKey, userProgress);
+				renderMap(); 
+				updateProgressBar(); 
+				alert("🔑 Admin Mobile: Đã mở khóa tất cả!");
+				tapCount = 0;
+			}
+		});
+	}
 </script>
 </body>
 </html>

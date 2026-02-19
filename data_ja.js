@@ -287,7 +287,7 @@ const myFullThemes = [
         {w: "サイクリング", img: "photo/Cycling.avif", opts: ["うんてん","バイク","サイクリング","のる"]},
         {w: "ヨガ", img: "photo/Yoga.avif", opts: ["ヨガ","ストレッチ","うんどう","しずか"]}
     ]},
-    { name: "くわしい天気 (Thời tiết nâng cao)", words: [
+    { name: "天気詳細 (Thời tiết nâng cao)", words: [
         {w: "ゆきだるま", img: "photo/Snowman.avif", opts: ["こおり","ふゆ","ゆきだるま","さむい"]},
         {w: "かみなり", img: "photo/Thunder.avif", opts: ["いなずま","かみなり","おと","そら"]},
         {w: "いなずま", img: "photo/Lightning.avif", opts: ["フラッシュ","いなずま","でんき","あめ"]},
@@ -299,7 +299,7 @@ const myFullThemes = [
         {w: "あらし", img: "photo/Stormy.avif", opts: ["あらい","ひどい","くらい","あらし"]},
         {w: "ハリケーン", img: "photo/Hurricane.avif", opts: ["たつまき","サイクロン","かぜ","ハリケーン"]}
     ]},
-    { name: "ばしょ (Nơi chốn)", words: [
+    { name: "プレース (Nơi chốn nâng cao)", words: [
         {w: "こうえん", img: "photo/Park.avif", opts: ["こうえん","にわ","あそびば","はら"]},
         {w: "かいがん", img: "photo/Beach.avif", opts: ["うみ","かいがん","すな","しま"]},
         {w: "のうじょう", img: "photo/Farm.avif", opts: ["のうじょう","なや","いなか","はら"]},
@@ -311,7 +311,7 @@ const myFullThemes = [
         {w: "はくぶつかん", img: "photo/Museum.avif", opts: ["アート","れきし","ギャラリー","はくぶつかん"]},
         {w: "パンや", img: "photo/Bakery.avif", opts: ["パンや","パン","ケーキ","カフェ"]}
     ]},
-    { name: "くわしい乗り物 (Giao thông nâng cao)", words: [
+    { name: "乗り物詳細 (Giao thông nâng cao)", words: [
         {w: "ロケット", img: "photo/Rocket.avif", opts: ["ロケット","うちゅう","シャトル","ほし"]},
         {w: "きゅうきゅうしゃ", img: "photo/Ambulance.avif", opts: ["バン","きゅうきゅうしゃ","いしゃ","びょういん"]},
         {w: "しょうぼうしゃ", img: "photo/Fire_truck.avif", opts: ["しょうぼうしゃ","ローリー","あか","みず"]},
@@ -323,7 +323,7 @@ const myFullThemes = [
         {w: "パトカー", img: "photo/Police_car.avif", opts: ["タクシー","けいかん","あお","パトカー"]},
         {w: "タクシー", img: "photo/Taxi.avif", opts: ["ウーバー","きいろ","タクシー","うんてんしゅ"]}
     ]},
-    { name: "くわしい家族 (Gia đình nâng cao)", words: [
+    { name: "家族詳細 (Gia đình nâng cao)", words: [
         {w: "おじいちゃん", img: "photo/Grandpa.avif", opts: ["としより","おじいちゃん","おとこ","お父さん"]},
         {w: "おばあちゃん", img: "photo/Grandma.avif", opts: ["おんな","おばあちゃん","としより","お母さん"]},
         {w: "むすこ", img: "photo/Son.avif", opts: ["むすこ","おとこのこ","こども","赤ちゃん"]},
@@ -335,7 +335,7 @@ const myFullThemes = [
         {w: "おばさん", img: "photo/Auntie.avif", opts: ["レディ","お母さん","おんな","おばさん"]},
         {w: "となりびと", img: "photo/Neighbor.avif", opts: ["いえ","みち","となりびと","ともだち"]}
     ]},
-    { name: "くわしい自然 (Thiên nhiên nâng cao)", words: [
+    { name: "自然詳細 (Thiên nhiên nâng cao)", words: [
         {w: "いし", img: "photo/Stone.avif", opts: ["いし","いわ","こいし","かたい"]},
         {w: "すな", img: "photo/Sand.avif", opts: ["ちり","すな","かいがん","さばく"]},
         {w: "かいがら", img: "photo/Shell.avif", opts: ["うずまき","うみ","かいがら","なぎさ"]},
@@ -347,7 +347,7 @@ const myFullThemes = [
         {w: "どうくつ", img: "photo/Cave.avif", opts: ["あな","どうくつ","くらい","いし"]},
         {w: "さばく", img: "photo/Desert.avif", opts: ["さばく","かわいた","あつい","すな"]}
     ]},
-    { name: "宇宙 (Vũ trụ nâng cao)", words: [
+    { name: "宇宙 (Vũ trụ)", words: [
         {w: "ちきゅう", img: "photo/Earth.avif", opts: ["せかい","わくせい","ちきゅう","ちきゅうぎ"]},
         {w: "つき", img: "photo/Moon.avif", opts: ["ぎんいろ","つき","よる","うちゅう"]},
         {w: "たいよう", img: "photo/Sun.avif", opts: ["たいよう","ひ","ほし","あかるい"]},
