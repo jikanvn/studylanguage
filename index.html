@@ -249,7 +249,11 @@
 			if (level.id <= userProgress) {
 				if (level.id < userProgress) {
 					node.classList.add('completed');
-					node.innerHTML = `<div>✅</div><div>${level.name}</div><button class="game-icon-btn" onclick="event.stopPropagation(); startFallingGame(gameData[${level.id-1}])">🎮 Play</button>`;
+					node.innerHTML = `
+						<div>✅</div>
+						<div>${level.name}</div>
+						<button class="game-icon-btn" onclick="event.stopPropagation(); unlockAudio(); startFallingGame(gameData[${level.id-1}])">🎮 Play</button>
+					`;
 				} else {
 					node.classList.add('active');
 					node.innerHTML = `<div>${level.id}</div><div>${level.name}</div>`;
@@ -384,7 +388,13 @@
 		spawn();
 	}
 	function updateGameScoreUI() { document.getElementById('game-score').innerHTML = `⭐ ${score} | ❤️ ${10 - mistakes}`; }
-
+	/**
+	 * Hàm đánh thức hệ thống âm thanh trên điện thoại
+	 */
+	function unlockAudio() {
+		const msg = new SpeechSynthesisUtterance(''); // Tạo một câu nói rỗng
+		window.speechSynthesis.speak(msg); // Phát lệnh rỗng để "mở khóa" quyền âm thanh
+	}
     // Đảm bảo dữ liệu được vẽ khi trang load xong hoàn toàn
     window.onload = () => { if(gameData.length) { renderMap(); updateProgressBar(); } };
 </script>
